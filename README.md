@@ -23,10 +23,10 @@ Welcome to **Elden Ring Game**, a fan-made recreation of the hit action RPG *Eld
      ```
    If not, [download and install the latest JDK](https://www.oracle.com/java/technologies/downloads/#java11)
 3. Compile the Game
-  ```
-  javac *.java
-  ```
+     ```
+     javac *.java
+     ```
 4. Run the Game
-  ```
-  java Main
-  ```
+     ```
+     java Main
+     ```
