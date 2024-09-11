@@ -9,5 +9,24 @@ Welcome to **Elden Ring Game**, a fan-made recreation of the hit action RPG *Eld
 - **Character Customization**: Create your own character, choose weapons, and level up skills.
 - **Boss Fights**: Challenging boss encounters with unique attack patterns and phases.
 
-## How to Play
-- [Click here](https://www.onlinegdb.com/edit/pXyk8fMDs#)
+## Installation Instructions
+
+1. Clone this repository in a command prompt:
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
+   ```
+2. Install Java
+   Check first if it is installed
+     ```
+     java -version
+     ```
+   If not, [download and install the latest JDK](https://www.oracle.com/java/technologies/downloads/#java11)
+3. Compile the Game
+  ```
+  javac *.java
+  ```
+4. Run the Game
+  ```
+  java Main
+  ```
