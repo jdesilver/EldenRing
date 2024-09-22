@@ -13,8 +13,8 @@ Welcome to **Elden Ring Game**, a fan-made recreation of the hit action RPG *Eld
 
 1. Clone this repository in a command prompt:
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
-   cd your-repo-name
+   git clone https://github.com/jdesilver/EldenRing.git
+   cd EldenRing
    ```
 2. Install Java
    Check first if it is installed
