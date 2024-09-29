@@ -1,7 +1,7 @@
 # Elden Ring Game
 
 ## Overview
-Welcome to **Elden Ring Game**, a fan-made recreation of the hit action RPG *Elden Ring*. In this project, I aim to capture the essence of the game by developing key gameplay mechanics, combat systems, and an immersive story experience.
+Welcome to my **Elden Ring**, a fan-made recreation of the hit action RPG *Elden Ring*. In this project, I aim to capture the essence of the game by developing key gameplay mechanics, combat systems, and an immersive story experience.
 
 ## Features
 - **Combat Mechanics**: Implemented time-based combat with a variety of weapons and spells.
