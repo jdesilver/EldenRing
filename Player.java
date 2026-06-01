@@ -1,223 +1,101 @@
-import java.util.Scanner;
+import java.util.Arrays;
 
 /**
- * Represents the player character in the game.
- * The player has attributes such as health, focus points (FP), stamina, and runes.
- * The player can also wield a weapon and engage in combat with bosses.
+ * The Tarnished: the player's character. Tracks health, focus, the eight stats, the equipped weapon,
+ * runes (the currency) and remaining heals, and performs the player's combat actions.
  */
 public class Player {
     private String name;
-    private int hp; // Health Points
-    private int fp; // Focus Points
-    private int stamina; // Player's stamina for combat actions
-    private int[] stats; // Array to store player stats
-    private Weapon hand; // Weapon the player is using
-    private int runes; // Currency for buying/upgrading weapons or leveling up
-    private int healingTotal; // Number of heals player can perform
+    private int hp;
+    private int fp;
+    private int stamina;
+    private int[] stats;
+    private Weapon hand;
+    private int runes;
+    private int healingTotal;
 
-    /**
-     * Creates a new Player with a default weapon, HP, FP, and starting runes.
-     * 
-     * @param name The name of the player.
-     */
     public Player(String name) {
         this.name = name;
-        this.hand = new Weapon(); // Default weapon
+        this.hand = new Weapon();      // start with bare fists
         this.hp = 300;
         this.fp = 200;
         this.stamina = 0;
-        this.stats = new int[8]; // Initialize stats array
-        this.runes = 15; // Starting runes
-        this.healingTotal = 2; // Default healing amount
+        this.stats = new int[Stat.COUNT];
+        this.runes = 15;
+        this.healingTotal = 2;
     }
 
     /**
-     * Handles player's attack on the boss, based on the attack type.
-     * 
-     * @param boss The boss being attacked.
-     * @param player The player performing the attack.
-     * @param type The type of attack: 1 (Light), 2 (Heavy), 3 (Special).
-     * @return Time cost of the attack action.
+     * Performs an attack of the given type (1 = light, 2 = heavy, 3 = special) against the boss,
+     * announcing the strike and the damage dealt.
+     *
+     * @return the time the action costs (faster the more stamina the player has).
      */
-    public int attack(Boss boss, Player player, int type) {
+    public int attack(Boss boss, int type) {
+        int base = hand.getNewDamage(this);
         switch (type) {
-            case 1:
-                clearScreen();
-                speak("You use " + player.getHand().getLight() + "!");
-                speak("You hit for " + boss.loseHp(player.getHand().getNewDamage(player)) + " hp!");
-                return ((player.getHand().getTime()) - (int) player.getStamina() / 10);
-            case 2:
-                clearScreen();
-                speak("You use " + player.getHand().getHeavy() + "!");
-                speak("You hit for " + boss.loseHp(player.getHand().getNewDamage(player) * 2) + " hp!");
-                return ((player.getHand().getTime() * 2) - (int) player.getStamina() / 10);
-            case 3:
-                clearScreen();
-                speak("You use " + player.getHand().getSpecial() + "!");
-                speak("You hit for " + boss.loseHp(player.getHand().getNewDamage(player) * 2) + " hp!");
-                return ((player.getHand().getTime()) - (int) player.getStamina() / 10);
+            case 1 -> {
+                Console.clear();
+                Console.speak("You use " + hand.getLight() + "!");
+                Console.speak("You hit for " + boss.loseHp(base) + " hp!");
+                return hand.getTime() - stamina / 10;
+            }
+            case 2 -> {
+                Console.clear();
+                Console.speak("You use " + hand.getHeavy() + "!");
+                Console.speak("You hit for " + boss.loseHp(base * 2) + " hp!");
+                return hand.getTime() * 2 - stamina / 10;
+            }
+            case 3 -> {
+                Console.clear();
+                Console.speak("You use " + hand.getSpecial() + "!");
+                Console.speak("You hit for " + boss.loseHp(base * 2) + " hp!");
+                return hand.getTime() - stamina / 10;
+            }
         }
         return -1;
     }
 
-    /**
-     * Handles player's dodge action based on the chosen direction.
-     * 
-     * @param direction The direction to dodge: 1 (Forward), 2 (Backward), 3 (Right), 4 (Left).
-     * @return The corresponding dodge action.
-     */
-    public int dodge(int direction) {
-        switch (direction) {
-            case 1:
-                clearScreen();
-                speak("Dodged Forward!");
-                return 1;
-            case 2:
-                clearScreen();
-                speak("Dodged Backward!");
-                return 2;
-            case 3:
-                clearScreen();
-                speak("Dodged Right!");
-                return 3;
-            case 4:
-                clearScreen();
-                speak("Dodged Left!");
-                return 4;
+    /** Dodges in the given menu direction (1-4), announcing it; returns the direction dodged. */
+    public Direction dodge(int menuChoice) {
+        Direction direction = Direction.fromMenuChoice(menuChoice);
+        if (direction == null) {
+            return null;
         }
-        return -1;
+        Console.clear();
+        Console.speak("Dodged " + direction.label() + "!");
+        return direction;
     }
 
-    /**
-     * Heals the player by either increasing HP or FP.
-     * 
-     * @param player The player character.
-     * @param type True to heal HP, False to heal FP.
-     * @param top The maximum value that HP or FP can reach.
-     * @return Time cost of the healing action.
-     */
-    public int heal(Player player, boolean type, int top) {
-        if (type) {
-            player.hp += 50;
-            if (player.hp > top) player.hp = top;
-            return 2; // Takes 2 seconds to heal
+    /** Restores 50 HP or FP (capped at {@code cap}); takes 2 time. */
+    public int heal(boolean healHp, int cap) {
+        if (healHp) {
+            hp = Math.min(hp + 50, cap);
         } else {
-            player.fp += 50;
-            if (player.fp > top) player.fp = top;
-            return 2;
+            fp = Math.min(fp + 50, cap);
         }
+        return 2;
     }
 
-    // Getters and setters for the player's attributes
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getHp() {
-        return hp;
-    }
-
-    public void setHp(int hp) {
-        this.hp = hp;
-    }
-
-    public int getFp() {
-        return fp;
-    }
-
-    public void setFp(int fp) {
-        this.fp = fp;
-    }
-
-    public int getStamina() {
-        return stamina;
-    }
-
-    public void setStamina(int stamina) {
-        this.stamina = stamina;
-    }
-
-    public Weapon getHand() {
-        return hand;
-    }
-
-    public void setHand(Weapon hand) {
-        this.hand = hand;
-    }
-
-    public int getRunes() {
-        return runes;
-    }
-
-    public void spendRunes(int amount) {
-        this.runes -= amount;
-    }
-
-    public void addRunes(int amount) {
-        this.runes += amount;
-    }
-
-    public int[] getStats() {
-        return stats;
-    }
-
-    /**
-     * Returns an array of player's combat stats.
-     * 
-     * @return An array of relevant stats for combat.
-     */
+    /** The five stats that drive weapon scaling: Strength, Dexterity, Intelligence, Faith, Arcane. */
     public int[] getFightStats() {
-        int[] fightStats = new int[5];
-        System.arraycopy(stats, 3, fightStats, 0, 5); // Extract relevant stats for fighting
-        return fightStats;
+        return Arrays.copyOfRange(stats, Stat.STRENGTH.ordinal(), Stat.ARCANE.ordinal() + 1);
     }
 
-    public void setStats(int[] stats) {
-        this.stats = stats;
-    }
-
-    public int getStats(int index) {
-        return stats[index];
-    }
-
-    public void setStats(int index, int stat) {
-        this.stats[index] = stat;
-    }
-
-    public int getHealingTotal() {
-        return healingTotal;
-    }
-
-    public void setHealingTotal(int healingTotal) {
-        this.healingTotal = healingTotal;
-    }
-
-    public void addHealingTotal() {
-        this.healingTotal += 1;
-    }
-
-    /**
-     * Displays text to the player and waits for input before continuing.
-     * 
-     * @param text The text to display to the player.
-     */
-    public void speak(String text) {
-        Scanner input = new Scanner(System.in);
-        System.out.println(text);
-        input.nextLine(); // Wait for player to press Enter
-        clearScreen();
-    }
-
-    /**
-     * Clears the console screen.
-     */
-    public void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
+    public String getName()                 { return name; }
+    public int getHp()                      { return hp; }
+    public void setHp(int hp)               { this.hp = hp; }
+    public int getFp()                      { return fp; }
+    public void setFp(int fp)               { this.fp = fp; }
+    public Weapon getHand()                 { return hand; }
+    public void setHand(Weapon hand)        { this.hand = hand; }
+    public int getRunes()                   { return runes; }
+    public void spendRunes(int amount)      { this.runes -= amount; }
+    public void addRunes(int amount)        { this.runes += amount; }
+    public int[] getStats()                 { return stats; }
+    public void setStats(int[] stats)       { this.stats = stats; }
+    public int getStats(int index)          { return stats[index]; }
+    public int getHealingTotal()            { return healingTotal; }
+    public void setHealingTotal(int total)  { this.healingTotal = total; }
+    public void addHealingTotal()           { this.healingTotal += 1; }
 }
