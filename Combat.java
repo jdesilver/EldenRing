@@ -1,251 +1,173 @@
-import java.util.Scanner;
-
 /**
- * Manages the combat between the player and the boss.
+ * Runs a single boss encounter. Combat is time-based: every boss attack has a charge-up window, and
+ * each action the player takes (attack, heal, wait) spends time from that window. Dodging in time and
+ * in one of the attack's two dodgeable directions avoids it outright; otherwise, when the window runs
+ * out, the attack lands. After an attack the boss is briefly vulnerable during its cool-down.
  */
 public class Combat {
-    private Player player; // The player participating in combat
-    private Boss boss; // The boss the player is fighting
-    private int timeTaken; // Time taken for each action
+    private static final int DODGE_COST = 2;
 
-    /**
-     * Creates a Combat instance with the given player and boss.
-     * 
-     * @param player The player participating in the combat.
-     * @param boss The boss the player is fighting.
-     */
+    // bossTurn outcomes.
+    private static final int LOSS = 0;
+    private static final int CONTINUE = 1;
+    private static final int WIN = 2;
+
+    private final Player player;
+    private final Boss boss;
+    private int timeTaken;
+
     public Combat(Player player, Boss boss) {
         this.player = player;
         this.boss = boss;
     }
 
-    /**
-     * Starts the combat sequence.
-     * 
-     * @return True if the player wins, false if the player loses.
-     */
+    /** Plays out the fight. Returns true if the player wins, false if they die. */
     public boolean start() {
         int topHp = player.getHp();
         int topFp = player.getFp();
-        int topBossHp = boss.getHp();
-        
+
         while (player.getHp() > 0 && boss.getHp() > 0) {
-            int outcome = bossTurn(topHp, topFp, topBossHp);
-            switch (outcome) {
-                case 0:
-                    return false; // Player lost
-                case 1:
-                    break; // Continue combat
-                case 2:
-                    return true; // Player won
-            }
+            int outcome = bossTurn(topHp, topFp);
+            if (outcome == LOSS) return false;
+            if (outcome == WIN) return true;
+            // CONTINUE: take another turn
         }
-
-        speak("You died");
-        return false; // Player lost
+        Console.speak("You died");
+        return false;
     }
 
-    /**
-     * Handles the player's actions during their turn.
-     * 
-     * @param topHp The player's maximum health points.
-     * @param topFp The player's maximum focus points.
-     * @return An integer representing the result of the player's action.
-     */
-    private int playerAction(int topHp, int topFp) {
-        Scanner input = new Scanner(System.in);
-        System.out.println("Health: " + player.getHp());
-        System.out.println("Focus: " + player.getFp());
-        System.out.println();
-        System.out.println("Boss Health: " + boss.getHp());
-        System.out.println("Total Heals: " + player.getHealingTotal());
-        System.out.println();
-        
-        System.out.println("Choose an action:\n1) Attack\n2) Dodge\n3) Heal\n4) Wait\n");
-        int action = input.nextInt();
-        input.nextLine();
-        switch (action) {
-            case 1:
-                clearScreen();
-                System.out.println("Choose an attack:\n1) Light\n2) Heavy\n3) Special\n");
-                int nextAction = input.nextInt();
-                switch (nextAction) {
-                    case 1:
-                        setTimeTaken(player.attack(boss, player, 1));
-                        break;
-                    case 2:
-                        setTimeTaken(player.attack(boss, player, 2));
-                        break;
-                    case 3:
-                        player.setFp(player.getFp() - 50);
-                        setTimeTaken(player.attack(boss, player, 3));
-                        break;
-                    default:
-                        speak("Invalid action. Try again.\n");
-                }
-                break;
-            case 2:
-                clearScreen();
-                System.out.println("Choose a direction:\n1) Forward\n2) Backward\n3) Right\n4) Left\n");
-                nextAction = input.nextInt();
-                switch (nextAction) {
-                    case 1:
-                        return player.dodge(1);
-                    case 2:
-                        return player.dodge(2);
-                    case 3:
-                        return player.dodge(3);
-                    case 4:
-                        return player.dodge(4);
-                    default:
-                        speak("Invalid action. Try again.\n");
-                }
-                break;
-            case 3:
-                clearScreen();
-                if (player.getHealingTotal() == 0) {
-                    speak("Out of heals!");
-                    setTimeTaken(2);
-                    break;
-                }
-                System.out.println("What are you healing?\n1) Hp\n2) Fp\n");
-                nextAction = input.nextInt();
-                switch (nextAction) {
-                    case 1:
-                        player.setHealingTotal(player.getHealingTotal() - 1);
-                        setTimeTaken(player.heal(player, true, topHp));
-                        break;
-                    case 2:
-                        player.setHealingTotal(player.getHealingTotal() - 1);
-                        setTimeTaken(player.heal(player, false, topFp));
-                        break;
-                    default:
-                        speak("Invalid action. Try again.\n");
-                }
-                break;
-            case 4:
-                clearScreen();
-                System.out.println("How Long?\n");
-                nextAction = input.nextInt();
-                setTimeTaken(nextAction);
-                break;
-            default:
-                speak("Invalid action. Try again.\n");
-        }
-        return 0; // Continue the turn
-    }
-
-    /**
-     * Manages the boss's turn and attacks.
-     * 
-     * @param topHp The player's maximum health points.
-     * @param topFp The player's maximum focus points.
-     * @param topBossHp The boss's maximum health points.
-     * @return An integer representing the outcome of the boss's turn.
-     */
-    private int bossTurn(int topHp, int topFp, int topBossHp) {
+    /** Plays one combo from the boss, interleaved with the player's actions. */
+    private int bossTurn(int topHp, int topFp) {
         boolean phaseChange = false;
-        Combo combo;
         while (player.getHp() > 0 && boss.getHp() > 0) {
-            if (boss.getPhase() == 1) combo = boss.chooseCombo1();
-            else combo = boss.chooseCombo2();
-            
-            for (Attack attack : combo.getAttacks()) {
-                int totalTime = attack.getChargeUpTime();
-                while (totalTime > 0) {
-                    System.out.println(attack.getLine());
-                    int dir = playerAction(topHp, topFp);
-                    
+            Combo combo = boss.nextCombo();
+            for (Attack attack : combo.attacks()) {
+                // Charge-up: the player acts while the attack winds up.
+                int timeLeft = attack.chargeUp();
+                while (timeLeft > 0) {
+                    Console.println(attack.line());
+                    Direction dodge = playerAction(topHp, topFp);
+
                     if (boss.checkPhase()) {
                         boss.setPhase(2);
                         phaseChange = true;
                         break;
                     }
-                    
                     if (boss.getHp() <= 0) {
-                        speak(boss.getDeathLine());
-                        speak("Foe Slain");
-                        return 2; // Player won
+                        Console.speak(boss.getDeathLine());
+                        Console.speak("Foe Slain");
+                        return WIN;
                     }
-                    
-                    if (dir > 0) {
-                        if (totalTime <= 2 && (dir - 1 == attack.getDodgeDirections()[0] || dir - 1 == attack.getDodgeDirections()[1])) {
-                            speak("Successfully dodged attack!");
-                            totalTime = 0;
+                    if (dodge != null) {
+                        if (timeLeft <= DODGE_COST && attack.dodgeable().contains(dodge)) {
+                            Console.speak("Successfully dodged attack!");
+                            timeLeft = 0;
                             break;
                         }
-                        totalTime -= 2;
+                        timeLeft -= DODGE_COST;
                     }
-                    
-                    totalTime -= getTimeTaken();
-                    setTimeTaken(0);
-                    
-                    if (totalTime <= 0) {
-                        speak("You were hit!");
-                        player.setHp(player.getHp() - attack.getDamage());
+
+                    timeLeft -= timeTaken;
+                    timeTaken = 0;
+
+                    if (timeLeft <= 0) {
+                        Console.speak("You were hit!");
+                        player.setHp(player.getHp() - attack.damage());
                         if (player.getHp() <= 0) {
-                            speak(boss.getWinLine());
-                            speak("You died");
-                            return 0; // Player lost
+                            Console.speak(boss.getWinLine());
+                            Console.speak("You died");
+                            return LOSS;
                         }
                     }
                 }
-                
-                totalTime = attack.getCoolDownTime();
-                while (totalTime > 0) {
+
+                // Cool-down: the boss is vulnerable and the player can act freely.
+                timeLeft = attack.coolDown();
+                while (timeLeft > 0) {
                     playerAction(topHp, topFp);
-                    
                     if (boss.checkPhase()) {
                         boss.setPhase(2);
                         phaseChange = true;
                         break;
                     }
-                    
-                    totalTime -= getTimeTaken();
-                    setTimeTaken(0);
+                    timeLeft -= timeTaken;
+                    timeTaken = 0;
                 }
+
                 if (phaseChange) break;
             }
-            return 1; // Continue combat
+            return CONTINUE;
         }
-        return 1; // Continue combat
+        return CONTINUE;
     }
 
     /**
-     * Sets the time taken for the current action.
-     * 
-     * @param timeTaken The time taken in seconds.
+     * Presents the player's action menu and carries out their choice. Sets {@link #timeTaken} for
+     * timed actions (attack, heal, wait); returns the direction dodged, or {@code null} otherwise.
      */
-    public void setTimeTaken(int timeTaken) {
-        this.timeTaken = timeTaken;
-    }
+    private Direction playerAction(int topHp, int topFp) {
+        Console.println("Health: " + player.getHp());
+        Console.println("Focus: " + player.getFp());
+        Console.println("");
+        Console.println("Boss Health: " + boss.getHp());
+        Console.println("Total Heals: " + player.getHealingTotal());
+        Console.println("");
+        Console.println("Choose an action:\n1) Attack\n2) Dodge\n3) Heal\n4) Wait\n");
 
-    /**
-     * Gets the time taken for the current action.
-     * 
-     * @return The time taken in seconds.
-     */
-    public int getTimeTaken() {
-        return this.timeTaken;
-    }
-
-    /**
-     * Prints the given text to the console and clears the screen.
-     * 
-     * @param text The text to display.
-     */
-    public void speak(String text) {
-        Scanner input = new Scanner(System.in);
-        System.out.println(text);
-        input.nextLine();
-        clearScreen();
-    }
-
-    /**
-     * Clears the console screen.
-     */
-    public void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        int action = Console.nextInt();
+        Console.nextLine();
+        switch (action) {
+            case 1 -> {
+                Console.clear();
+                Console.println("Choose an attack:\n1) Light\n2) Heavy\n3) Special\n");
+                switch (Console.nextInt()) {
+                    case 1 -> timeTaken = player.attack(boss, 1);
+                    case 2 -> timeTaken = player.attack(boss, 2);
+                    case 3 -> {
+                        player.setFp(player.getFp() - 50);
+                        timeTaken = player.attack(boss, 3);
+                    }
+                    default -> Console.speak("Invalid action. Try again.\n");
+                }
+            }
+            case 2 -> {
+                Console.clear();
+                Console.println("Choose a direction:\n1) Forward\n2) Backward\n3) Right\n4) Left\n");
+                switch (Console.nextInt()) {
+                    case 1 -> { return player.dodge(1); }
+                    case 2 -> { return player.dodge(2); }
+                    case 3 -> { return player.dodge(3); }
+                    case 4 -> { return player.dodge(4); }
+                    default -> Console.speak("Invalid action. Try again.\n");
+                }
+            }
+            case 3 -> {
+                Console.clear();
+                if (player.getHealingTotal() == 0) {
+                    Console.speak("Out of heals!");
+                    timeTaken = 2;
+                } else {
+                    Console.println("What are you healing?\n1) Hp\n2) Fp\n");
+                    switch (Console.nextInt()) {
+                        case 1 -> {
+                            player.setHealingTotal(player.getHealingTotal() - 1);
+                            timeTaken = player.heal(true, topHp);
+                        }
+                        case 2 -> {
+                            player.setHealingTotal(player.getHealingTotal() - 1);
+                            timeTaken = player.heal(false, topFp);
+                        }
+                        default -> Console.speak("Invalid action. Try again.\n");
+                    }
+                }
+            }
+            case 4 -> {
+                Console.clear();
+                Console.println("How Long?\n");
+                timeTaken = Console.nextInt();
+            }
+            default -> Console.speak("Invalid action. Try again.\n");
+        }
+        return null;
     }
 }

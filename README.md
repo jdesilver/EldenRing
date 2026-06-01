@@ -16,12 +16,15 @@ Welcome to my **Elden Ring**, a fan-made recreation of the hit action RPG *Elden
    git clone https://github.com/jdesilver/EldenRing.git
    cd EldenRing
    ```
-2. Install Java
-   Check first if it is installed
+2. Install Java (JDK 17 or newer)
+   Check first what is installed:
      ```
      java -version
      ```
-   If not, [download and install the latest JDK](https://www.oracle.com/java/technologies/downloads/#java11)
+   If the version is below 17, [download and install a current JDK](https://adoptium.net/).
+   Make sure `java` and `javac` report the same version — if `java -version` shows 1.8 while
+   `javac` is newer, put your JDK's `bin` directory first on your `PATH` (or call the JDK's
+   `java`/`javac` by full path).
 3. Compile the Game
      ```
      javac *.java
