@@ -71,8 +71,8 @@ final class Bestiary {
 
     static Boss godrick() {
         return new Boss(3200, 20,
-            "Lowly Tarnished... Thou'rt unfit even to graft… Great Godfrey, did'st thou witness?",
-            "Ahh, truest of dragons. Lend me thy strength… Nnngh! Forefathers, one and all… Bear witness!",
+            "Lowly Tarnished... Thou'rt unfit even to graft... Great Godfrey, did'st thou witness?",
+            "Ahh, truest of dragons. Lend me thy strength... Nnngh! Forefathers, one and all... Bear witness!",
             "...I am Lord of all that is Golden.... ...And one day, we'll return together... ...To our home, bathed in rays of gold...",
             // phase 1
             List.of(
@@ -327,7 +327,7 @@ final class Bestiary {
     static Boss mohg() {
         return new Boss(18389, 50,
             "Miquella is mine and mine alone.",
-            "Trēs! Duo! Ūnus! Nihil! Nihil! Nihil!",
+            "Tres! Duo! Unus! Nihil! Nihil! Nihil!",
             "Ahh, I can see it, clear as day! The coming of our dynasty! Mohgwyn!",
             // phase 1
             List.of(
@@ -739,7 +739,7 @@ final class Bestiary {
 
     static Boss malenia() {
         return new Boss(33251, 95,
-            "I am Malenia, Blade of Miquella…",
+            "I am Malenia, Blade of Miquella...",
             "Wait. *The scarlet bloom flowers once more* You will witness true horror. Now, rot!",
             "Your strength, extraordinary... The mark...of a true Lord... O, dear Miquella... O, dearest Miquella, my brother... I'm sorry. I finally met my match...",
             // phase 1

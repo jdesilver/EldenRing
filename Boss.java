@@ -2,8 +2,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * A boss encounter. Every boss shares this behaviour and differs only in data — its health, rune
- * reward, dialogue, and the combos it uses in each phase — so {@link Bestiary} builds them all from
+ * A boss encounter. Every boss shares this behaviour and differs only in data - its health, rune
+ * reward, dialogue, and the combos it uses in each phase - so {@link Bestiary} builds them all from
  * one class rather than a subclass apiece. A boss enters phase 2 once its health drops to half.
  */
 public class Boss {

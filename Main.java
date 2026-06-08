@@ -6,7 +6,7 @@ import java.util.InputMismatchException;
 import java.util.List;
 
 /**
- * Elden Ring — a text RPG. Author: James DeSilver.
+ * Elden Ring - a text RPG. Author: James DeSilver.
  *
  * <p>This class is the game's script: it walks the Tarnished through character creation, the
  * narrative, and each boss in turn, visiting a Site of Grace between fights. The prose lives in

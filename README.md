@@ -22,7 +22,7 @@ Welcome to my **Elden Ring**, a fan-made recreation of the hit action RPG *Elden
      java -version
      ```
    If the version is below 17, [download and install a current JDK](https://adoptium.net/).
-   Make sure `java` and `javac` report the same version — if `java -version` shows 1.8 while
+   Make sure `java` and `javac` report the same version - if `java -version` shows 1.8 while
    `javac` is newer, put your JDK's `bin` directory first on your `PATH` (or call the JDK's
    `java`/`javac` by full path).
 3. Compile the Game
