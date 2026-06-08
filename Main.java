@@ -2,7 +2,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.InputMismatchException;
 import java.util.List;
 
 /**
@@ -16,11 +15,21 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        try {
+            run();
+        } catch (Throwable t) {
+            Console.println("");
+            Console.println("An unforeseen calamity befalls the Lands Between. The journey ends here.");
+        }
+    }
+
+    /** The full game script, wrapped by {@link #main} so no unforeseen error can ever crash to a stack trace. */
+    private static void run() {
         Console.clear();
         Console.narrate(Story.INTRO);
 
         Console.print("What is thy name? ");
-        Player player = new Player(Console.nextLine());
+        Player player = new Player(Console.readLine());
 
         Console.clear();
         Console.narrate(Story.TUTORIAL);
@@ -120,7 +129,7 @@ public class Main {
         while (true) {
             Console.clear();
             Console.println("What dost thou wish to do?\n1) Purchase New Weapon\n2) Level Up\n3) Upgrade Weapon\n4) Leave\n");
-            switch (Console.nextInt()) {
+            switch (Console.readInt()) {
                 case 1 -> player.setHand(buyWeapon(player, wheel));
                 case 2 -> player.setStats(levelUp(player, player.getStats()));
                 case 3 -> {
@@ -155,33 +164,31 @@ public class Main {
         Console.println("");
 
         while (true) {
-            try {
-                int choice = Console.nextInt();
-                if (choice == -1) {
-                    return player.getHand();
-                }
-                choice--;
-                if (choice < 0 || choice >= wheel.size()) {
-                    Console.speak("Invalid choice. Please select a valid weapon.\n");
-                    continue;
-                }
-                if (player.getRunes() < wheel.get(choice).getPrice()) {
-                    Console.println("Not enough runes. Choose a different weapon.\n");
-                    continue;
-                }
-                Console.nextLine();
-                if (!confirm()) {
-                    continue;
-                }
-                player.spendRunes(wheel.get(choice).getPrice());
-                player.addRunes(player.getHand().getPrice());
-                Weapon chosen = wheel.get(choice);
-                wheel.set(choice, player.getHand());
-                return chosen;
-            } catch (InputMismatchException ex) {
+            int choice = Console.readInt();
+            if (choice == Console.INVALID) {
                 Console.speak("Invalid input. Please enter a valid number.\n");
-                Console.nextToken();
+                continue;
             }
+            if (choice == -1) {
+                return player.getHand();
+            }
+            choice--;
+            if (choice < 0 || choice >= wheel.size()) {
+                Console.speak("Invalid choice. Please select a valid weapon.\n");
+                continue;
+            }
+            if (player.getRunes() < wheel.get(choice).getPrice()) {
+                Console.println("Not enough runes. Choose a different weapon.\n");
+                continue;
+            }
+            if (!confirm()) {
+                continue;
+            }
+            player.spendRunes(wheel.get(choice).getPrice());
+            player.addRunes(player.getHand().getPrice());
+            Weapon chosen = wheel.get(choice);
+            wheel.set(choice, player.getHand());
+            return chosen;
         }
     }
 
@@ -266,21 +273,17 @@ public class Main {
      */
     private static int promptStatPoints(int runes, int currentStat) {
         while (true) {
-            try {
-                int amount = Console.nextInt();
-                if (amount + currentStat > 99) {
-                    Console.println("Cannot go over 99.");
-                } else if (amount > runes) {
-                    Console.println("Not enough runes.");
-                } else if (amount < -1) {
-                    Console.println("Has to be positive or -1 to undo.");
-                } else {
-                    Console.nextLine();
-                    return amount;
-                }
-            } catch (InputMismatchException e) {
+            int amount = Console.readInt();
+            if (amount == Console.INVALID) {
                 Console.speak("Invalid input. Please enter a number.");
-                Console.nextToken();
+            } else if ((long) amount + currentStat > 99) {
+                Console.println("Cannot go over 99.");
+            } else if (amount > runes) {
+                Console.println("Not enough runes.");
+            } else if (amount < -1) {
+                Console.println("Has to be positive or -1 to undo.");
+            } else {
+                return amount;
             }
         }
     }
@@ -326,7 +329,7 @@ public class Main {
         Console.clear();
         while (true) {
             Console.println("Decide.\n1) Let Melina fullfill her mission.\n2) Let chaos take the world.");
-            int answer = Console.nextInt();
+            int answer = Console.readInt();
             if (answer == 1) {
                 Console.narrate(Story.ENDING_LET_MELINA);
                 return true;
@@ -344,7 +347,7 @@ public class Main {
     private static boolean confirm() {
         while (true) {
             Console.println("Are you sure? (Y or N)\n");
-            String answer = Console.nextLine().trim().toUpperCase();
+            String answer = Console.readLine().trim().toUpperCase();
             if (answer.equals("Y")) {
                 return true;
             }
