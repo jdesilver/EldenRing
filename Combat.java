@@ -114,18 +114,21 @@ public class Combat {
         Console.println("");
         Console.println("Choose an action:\n1) Attack\n2) Dodge\n3) Heal\n4) Wait\n");
 
-        int action = Console.nextInt();
-        Console.nextLine();
-        switch (action) {
+        switch (Console.readInt()) {
             case 1 -> {
                 Console.clear();
                 Console.println("Choose an attack:\n1) Light\n2) Heavy\n3) Special\n");
-                switch (Console.nextInt()) {
+                switch (Console.readInt()) {
                     case 1 -> timeTaken = player.attack(boss, 1);
                     case 2 -> timeTaken = player.attack(boss, 2);
                     case 3 -> {
-                        player.setFp(player.getFp() - 50);
-                        timeTaken = player.attack(boss, 3);
+                        if (player.getFp() < 50) {
+                            Console.speak("Not enough Focus!");
+                            timeTaken = 2;
+                        } else {
+                            player.setFp(player.getFp() - 50);
+                            timeTaken = player.attack(boss, 3);
+                        }
                     }
                     default -> Console.speak("Invalid action. Try again.\n");
                 }
@@ -133,7 +136,7 @@ public class Combat {
             case 2 -> {
                 Console.clear();
                 Console.println("Choose a direction:\n1) Forward\n2) Backward\n3) Right\n4) Left\n");
-                switch (Console.nextInt()) {
+                switch (Console.readInt()) {
                     case 1 -> { return player.dodge(1); }
                     case 2 -> { return player.dodge(2); }
                     case 3 -> { return player.dodge(3); }
@@ -148,7 +151,7 @@ public class Combat {
                     timeTaken = 2;
                 } else {
                     Console.println("What are you healing?\n1) Hp\n2) Fp\n");
-                    switch (Console.nextInt()) {
+                    switch (Console.readInt()) {
                         case 1 -> {
                             player.setHealingTotal(player.getHealingTotal() - 1);
                             timeTaken = player.heal(true, topHp);
@@ -164,7 +167,12 @@ public class Combat {
             case 4 -> {
                 Console.clear();
                 Console.println("How Long?\n");
-                timeTaken = Console.nextInt();
+                int wait = Console.readInt();
+                if (wait < 0) {
+                    Console.speak("Invalid action. Try again.\n");
+                } else {
+                    timeTaken = wait;
+                }
             }
             default -> Console.speak("Invalid action. Try again.\n");
         }

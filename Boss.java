@@ -48,6 +48,9 @@ public class Boss {
     /** Picks a random combo from the boss's current phase. */
     public Combo nextCombo() {
         List<Combo> combos = (phase == 1) ? phase1Combos : phase2Combos;
+        if (combos == null || combos.isEmpty()) {
+            combos = phase1Combos;  // defensive: never draw from an empty list
+        }
         return combos.get(random.nextInt(combos.size()));
     }
 
