@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Elden Ring — A Text RPG</title>
+  <meta name="description" content="A free, accessible browser version of the Elden Ring text RPG. Play in your browser with a keyboard, mouse, screen reader, or touch — no download required." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#input-form">Skip to game input</a>
+
+  <header class="site-header">
+    <h1>Elden Ring <span class="subtitle">— A Text RPG</span></h1>
+    <button id="restart" class="ghost-btn" type="button" hidden>Restart</button>
+  </header>
+
+  <main>
+    <!-- Start screen -->
+    <section id="start" class="start" aria-labelledby="start-title">
+      <h2 id="start-title">Rise, Tarnished.</h2>
+      <p>
+        A fan-made, text-based retelling of <em>Elden Ring</em>: create a character,
+        choose your weapons, and battle a gauntlet of bosses in time-based combat.
+        It plays entirely in your browser — nothing to install.
+      </p>
+      <h3>How to play</h3>
+      <ul>
+        <li><strong>Menus</strong> are numbered. Type the number of your choice and press <kbd>Enter</kbd>, or select one of the on-screen buttons.</li>
+        <li><strong>Story screens</strong> wait for you. Press <kbd>Enter</kbd> (or select <em>Continue</em>) to advance.</li>
+        <li><strong>Combat</strong> is turn-based: each boss attack charges up while you Attack, Dodge, Heal, or Wait. Dodge in time and in a correct direction to avoid the hit.</li>
+        <li>If you enter something that isn't an option, you simply return to the same prompt — you can't break anything.</li>
+      </ul>
+      <button id="begin" class="primary-btn" type="button">Begin your journey</button>
+    </section>
+
+    <!-- Game screen -->
+    <section id="play" class="play" aria-label="Game" hidden>
+      <div
+        id="screen"
+        class="screen"
+        role="log"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label="Game narration and menus"
+        tabindex="0"
+      ></div>
+
+      <p id="prompt" class="prompt" role="status">Type your choice, then press Enter.</p>
+
+      <div id="quick" class="quick" aria-label="Quick actions"></div>
+
+      <form id="input-form" class="input-form" autocomplete="off">
+        <label for="cmd" class="visually-hidden">Your input</label>
+        <input
+          id="cmd"
+          name="cmd"
+          type="text"
+          class="cmd"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          aria-describedby="prompt"
+        />
+        <button type="submit" class="primary-btn">Enter</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Fan project by James DeSilver. Not affiliated with FromSoftware or Bandai Namco.
+      <a href="https://github.com/jdesilver/EldenRing">Source on GitHub</a>.
+    </p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
