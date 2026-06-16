@@ -343,15 +343,15 @@ public class Main {
         }
     }
 
-    /** Asks a yes/no question, re-prompting until the player answers Y or N. */
+    /** Asks a yes/no question, re-prompting until the player answers. Accepts Y/YES or N/NO, in any case. */
     private static boolean confirm() {
         while (true) {
             Console.println("Are you sure? (Y or N)\n");
             String answer = Console.readLine().trim().toUpperCase();
-            if (answer.equals("Y")) {
+            if (answer.equals("Y") || answer.equals("YES")) {
                 return true;
             }
-            if (answer.equals("N")) {
+            if (answer.equals("N") || answer.equals("NO")) {
                 return false;
             }
             Console.speak("Invalid input. Please enter Y or N.\n");

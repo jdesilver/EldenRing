@@ -73,6 +73,14 @@ win path:
 node docs/test.js
 ```
 
+`verify-port.js` is a differential check that parses the Java source and confirms the
+web version's data (bosses, weapons, narration) matches it exactly — run it after any
+gameplay change to keep the two versions in sync:
+
+```bash
+node verify-port.js
+```
+
 ## Run the original Java console version
 
 The original terminal game lives in the repository root.

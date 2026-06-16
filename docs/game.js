@@ -401,8 +401,8 @@
     while (true) {
       Console.println("Are you sure? (Y or N)\n");
       const answer = (await Console.readLine()).trim().toUpperCase();
-      if (answer === "Y") return true;
-      if (answer === "N") return false;
+      if (answer === "Y" || answer === "YES") return true;
+      if (answer === "N" || answer === "NO") return false;
       await Console.speak("Invalid input. Please enter Y or N.\n");
     }
   }
@@ -711,10 +711,14 @@
     let screen = "";
     let pending = null;
     let mode = "input";
+    let freshScreen = true;
 
     function render() {
       els.screen.textContent = screen;
-      els.screen.scrollTop = els.screen.scrollHeight;
+      // A freshly-cleared screen (a new narration beat) scrolls to the top so long
+      // passages read from the beginning; ongoing output (combat status, menus)
+      // keeps the newest lines in view.
+      els.screen.scrollTop = freshScreen ? 0 : els.screen.scrollHeight;
     }
 
     function clamp(label) {
@@ -724,6 +728,9 @@
 
     function quickButtons() {
       const out = [];
+      if (mode === "done") {
+        return out; // game over: no actions until Restart
+      }
       if (mode === "continue") {
         out.push({ label: "Continue ▶", value: "" });
         return out;
@@ -747,8 +754,9 @@
     }
 
     function rebuildControls() {
-      els.prompt.textContent = mode === "continue"
-        ? "Press Enter (or select Continue) to advance."
+      els.prompt.textContent =
+        mode === "done" ? "The journey is over. Select Restart above to play again."
+        : mode === "continue" ? "Press Enter (or select Continue) to advance."
         : "Type your choice, then press Enter.";
       els.quick.innerHTML = "";
       for (const b of quickButtons()) {
@@ -762,8 +770,9 @@
         });
         els.quick.appendChild(btn);
       }
-      // Keep keyboard focus on the input so typing always works.
-      if (document.activeElement !== els.cmd) {
+      els.cmd.disabled = mode === "done";
+      // Keep keyboard focus on the input so typing always works (except when done).
+      if (mode !== "done" && document.activeElement !== els.cmd) {
         els.cmd.focus();
       }
     }
@@ -777,9 +786,9 @@
     }
 
     return {
-      print(text) { screen += text; render(); },
-      println(text) { screen += text + "\n"; render(); },
-      clear() { screen = ""; render(); },
+      print(text) { screen += text; render(); freshScreen = false; },
+      println(text) { screen += text + "\n"; render(); freshScreen = false; },
+      clear() { screen = ""; freshScreen = true; render(); },
       setMode(m) { mode = m; rebuildControls(); },
       readLine() { return new Promise((resolve) => { pending = resolve; }); },
       submit,
@@ -813,20 +822,18 @@
       els.start.hidden = true;
       els.play.hidden = false;
       els.restartBtn.hidden = false;
+      els.cmd.disabled = false;
       els.cmd.focus();
       try {
         await run();
-        io.setMode("continue");
         Console.println("");
         Console.println("— THE END —");
-        Console.println("");
-        Console.println("Select Restart above to play again.");
       } catch (err) {
         Console.println("");
         Console.println("An unforeseen calamity befalls the Lands Between. The journey ends here.");
-        // eslint-disable-next-line no-console
         if (global.console && global.console.error) global.console.error(err);
       }
+      io.setMode("done");
     }
 
     els.beginBtn.addEventListener("click", startGame);
